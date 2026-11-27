@@ -1,0 +1,38 @@
+name: NOKHBA Studio Quality Check
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check public/studio.js
+          node --check studio.js
+
+      - name: Verify development-only structure
+        run: |
+          test -f public/index.html
+          test -f public/studio.css
+          test -f public/studio.js
+          grep -Fq 'src="studio.js"' public/index.html
+          grep -Fq 'workerUrl: ""' public/studio.js
+          grep -Fq 'environment: "development"' public/studio.js
+          cmp -s public/studio.js studio.js
